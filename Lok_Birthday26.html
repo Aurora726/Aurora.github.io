@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lok · 26岁生日快乐</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Noto+Serif+SC:wght@300;400;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --forest-dark: #1a2e1a;
+  --forest-mid: #2d4a2d;
+  --forest-light: #4a7a4a;
+  --moss: #6b8f4e;
+  --gold: #d4a853;
+  --gold-light: #f0d68a;
+  --cream: #faf3e0;
+  --warm-white: #fff8f0;
+  --blush: #e8b4b8;
+  --lavender: #c4b7d4;
+  --sky-soft: #b8d4e3;
+  --peach: #f0c4a8;
+}
+
+html, body {
+  width: 100%; height: 100%;
+  overflow: hidden;
+  font-family: 'Noto Serif SC', 'Cormorant Garamond', serif;
+  background: var(--forest-dark);
+}
+
+/* ============ MUSIC TOGGLE ============ */
+#music-btn {
+  position: fixed;
+  top: 20px; right: 20px;
+  z-index: 300;
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s;
+  color: rgba(255,255,255,0.6);
+  font-size: 18px;
+}
+#music-btn:hover { background: rgba(255,255,255,0.15); }
+#music-btn.playing .bar { animation: soundBar 0.8s ease-in-out infinite alternate; }
+#music-btn .bars { display: flex; gap: 2px; align-items: flex-end; height: 16px; }
+#music-btn .bar {
+  width: 3px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 1px;
+  height: 6px;
+  transition: height 0.3s;
+}
+#music-btn.playing .bar:nth-child(1) { animation: soundBar 0.6s 0s ease-in-out infinite alternate; }
+#music-btn.playing .bar:nth-child(2) { animation: soundBar 0.6s 0.15s ease-in-out infinite alternate; }
+#music-btn.playing .bar:nth-child(3) { animation: soundBar 0.6s 0.3s ease-in-out infinite alternate; }
+#music-btn.playing .bar:nth-child(4) { animation: soundBar 0.6s 0.1s ease-in-out infinite alternate; }
+#music-btn:not(.playing) .bar { height: 3px !important; }
+@keyframes soundBar {
+  0% { height: 4px; }
+  100% { height: 16px; }
+}
+
+/* ============ SCENE 1: FOREST WALK ============ */
+#forest-scene {
+  position: fixed; inset: 0;
+  z-index: 100;
+  cursor: pointer;
+  transition: opacity 1.2s ease;
+}
+
+#forest-scene.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#forest-canvas {
+  width: 100%; height: 100%;
+  display: block;
+}
+
+#click-hint {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: rgba(250,243,224,0.7);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  letter-spacing: 3px;
+  animation: hintPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes hintPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ============ SCENE 2: MAIN PAGE ============ */
+#main-scene {
+  position: fixed; inset: 0;
+  background: radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #0d0d1a 60%, #050510 100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1.5s ease 0.5s;
+  overflow: hidden;
+}
+
+#main-scene.visible {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Stars background */
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.8);
+  animation: twinkle var(--dur) ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Bubbles layout */
+.bubble-wrapper {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.bubble-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+  pointer-events: none;
+}
+
+.bubble-row-bottom {
+  margin-top: 30px;
+}
+
+.bubble {
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  pointer-events: all;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+  animation: floatBubble var(--float-dur, 6s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.bubble-normal {
+  width: 130px; height: 130px;
+}
+
+.bubble-big {
+  width: 180px; height: 180px;
+  box-shadow: 0 0 40px rgba(240,214,138,0.15), 0 0 80px rgba(240,214,138,0.05);
+}
+
+.bubble:hover {
+  transform: scale(1.12);
+}
+
+.bubble-c1 { background: radial-gradient(circle at 30% 30%, rgba(232,180,184,0.5), rgba(232,180,184,0.15)); }
+.bubble-c2 { background: radial-gradient(circle at 30% 30%, rgba(184,212,227,0.5), rgba(184,212,227,0.15)); }
+.bubble-c3 { background: radial-gradient(circle at 30% 30%, rgba(196,183,212,0.5), rgba(196,183,212,0.15)); }
+.bubble-c4 { background: radial-gradient(circle at 30% 30%, rgba(212,168,83,0.4), rgba(212,168,83,0.12)); }
+.bubble-c5 { background: radial-gradient(circle at 30% 30%, rgba(107,143,78,0.5), rgba(107,143,78,0.15)); }
+.bubble-c6 { background: radial-gradient(circle at 30% 30%, rgba(240,214,138,0.45), rgba(240,214,138,0.12)); border-color: rgba(240,214,138,0.25); }
+
+.bubble .label {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: rgba(255,255,255,0.9);
+  letter-spacing: 4px;
+  text-shadow: 0 0 20px rgba(255,255,255,0.3);
+  user-select: none;
+}
+
+.bubble .label-26 {
+  font-family: 'EB Garamond', serif;
+  font-size: 56px;
+  font-weight: 600;
+  color: var(--gold-light);
+  text-shadow: 0 0 30px rgba(212,168,83,0.5);
+  user-select: none;
+}
+
+/* Bubble highlight */
+.bubble::before {
+  content: '';
+  position: absolute;
+  top: 15%; left: 20%;
+  width: 30%; height: 20%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(255,255,255,0.35), transparent);
+  pointer-events: none;
+}
+
+@keyframes floatBubble {
+  0%, 100% { transform: translateY(0px) translateX(0px); }
+  25% { transform: translateY(-12px) translateX(5px); }
+  50% { transform: translateY(-5px) translateX(-8px); }
+  75% { transform: translateY(-15px) translateX(3px); }
+}
+
+/* Modal overlay */
+#modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(5,5,16,0.85);
+  backdrop-filter: blur(10px);
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  cursor: pointer;
+  flex-direction: column;
+}
+
+#modal-overlay.show {
+  display: flex;
+  opacity: 1;
+}
+
+#modal-content {
+  max-width: 600px;
+  padding: 50px 40px;
+  text-align: center;
+  animation: modalIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes modalIn {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-quote {
+  font-family: 'EB Garamond', 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-style: italic;
+  line-height: 1.8;
+  color: var(--cream);
+  letter-spacing: 0.5px;
+}
+
+.modal-author {
+  margin-top: 24px;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 14px;
+  color: rgba(250,243,224,0.5);
+  letter-spacing: 3px;
+}
+
+/* Birthday special modal */
+.birthday-modal-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.birthday-big {
+  font-family: 'Noto Serif SC', serif;
+  font-size: clamp(36px, 8vw, 72px);
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--blush));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 12px;
+  animation: bdayGlow 3s ease-in-out infinite;
+}
+
+@keyframes bdayGlow {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.3); }
+}
+
+.birthday-cake {
+  animation: cakeFloat 3s ease-in-out infinite;
+}
+
+@keyframes cakeFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Blessing text */
+#blessing {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  color: rgba(250,243,224,0.45);
+  letter-spacing: 4px;
+  white-space: nowrap;
+  z-index: 5;
+  animation: blessFade 3s ease-in-out infinite alternate;
+}
+
+@keyframes blessFade {
+  0% { opacity: 0.3; }
+  100% { opacity: 0.7; }
+}
+
+/* Flower rain */
+.petal {
+  position: fixed;
+  pointer-events: none;
+  z-index: 200;
+  opacity: 0.8;
+  animation: petalFall var(--fall-dur, 3s) ease-in forwards;
+}
+
+@keyframes petalFall {
+  0% { opacity: 0.9; transform: translateY(0) rotate(0deg) scale(1); }
+  70% { opacity: 0.6; }
+  100% { opacity: 0; transform: translateY(100vh) rotate(var(--rot, 360deg)) scale(0.3); }
+}
+
+/* Progress bar for forest walk */
+#walk-progress {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 2px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 1px;
+  overflow: hidden;
+}
+
+#walk-progress-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--moss), var(--gold-light));
+  transition: width 0.3s ease;
+  border-radius: 1px;
+}
+</style>
+</head>
+<body>
+
+<!-- Music Toggle -->
+<button id="music-btn" title="音乐开关">
+  <div class="bars">
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+    <div class="bar"></div>
+  </div>
+</button>
+
+<!-- SCENE 1: Forest Walk -->
+<div id="forest-scene">
+  <canvas id="forest-canvas"></canvas>
+  <div id="click-hint">点击屏幕 · 陪她走进森林</div>
+  <div id="walk-progress"><div id="walk-progress-bar"></div></div>
+</div>
+
+<!-- SCENE 2: Main Bubble Page -->
+<div id="main-scene">
+  <div class="bubble-wrapper" id="bubble-wrapper">
+    <div class="bubble-row" id="bubble-row-top"></div>
+    <div class="bubble-row bubble-row-bottom" id="bubble-row-bottom"></div>
+  </div>
+  <div id="blessing">愿你26岁 找到自己的心安之处</div>
+</div>
+
+<!-- Quote Modal -->
+<div id="modal-overlay">
+  <div id="modal-content"></div>
+</div>
+
+<script>
+// ========== MUSIC: Happy Birthday melody via Web Audio ==========
+let audioCtx = null;
+let musicPlaying = false;
+let musicTimeout = null;
+
+// Happy Birthday notes: C C D C F E | C C D C G F | C C C' A F E D | Bb Bb A F G F
+// Simplified gentle music-box version
+const melody = [
+  // "Happy birthday to you"
+  { note: 'C4', dur: 0.4 }, { note: 'C4', dur: 0.2 }, { note: 'D4', dur: 0.6 },
+  { note: 'C4', dur: 0.6 }, { note: 'F4', dur: 0.6 }, { note: 'E4', dur: 1.0 },
+  { note: null, dur: 0.3 },
+  // "Happy birthday to you"
+  { note: 'C4', dur: 0.4 }, { note: 'C4', dur: 0.2 }, { note: 'D4', dur: 0.6 },
+  { note: 'C4', dur: 0.6 }, { note: 'G4', dur: 0.6 }, { note: 'F4', dur: 1.0 },
+  { note: null, dur: 0.3 },
+  // "Happy birthday dear..."
+  { note: 'C4', dur: 0.4 }, { note: 'C4', dur: 0.2 }, { note: 'C5', dur: 0.6 },
+  { note: 'A4', dur: 0.6 }, { note: 'F4', dur: 0.6 }, { note: 'E4', dur: 0.6 }, { note: 'D4', dur: 0.8 },
+  { note: null, dur: 0.3 },
+  // "Happy birthday to you"
+  { note: 'Bb4', dur: 0.4 }, { note: 'Bb4', dur: 0.2 }, { note: 'A4', dur: 0.6 },
+  { note: 'F4', dur: 0.6 }, { note: 'G4', dur: 0.6 }, { note: 'F4', dur: 1.2 },
+  { note: null, dur: 1.0 },
+];
+
+const noteFreqs = {
+  'C4': 261.63, 'D4': 293.66, 'E4': 329.63, 'F4': 349.23,
+  'G4': 392.00, 'A4': 440.00, 'Bb4': 466.16, 'B4': 493.88,
+  'C5': 523.25
+};
+
+function initAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playNote(freq, startTime, duration) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+
+  // Soft music-box sound
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+
+  // Add a second oscillator for shimmer
+  const osc2 = audioCtx.createOscillator();
+  const gain2 = audioCtx.createGain();
+  osc2.type = 'sine';
+  osc2.frequency.value = freq * 2; // octave up
+  gain2.gain.value = 0.08;
+  osc2.connect(gain2);
+  gain2.connect(filter);
+
+  filter.type = 'lowpass';
+  filter.frequency.value = 2000;
+
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(0.12, startTime + 0.05);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+  osc.connect(gain);
+  gain.connect(filter);
+  filter.connect(audioCtx.destination);
+
+  osc.start(startTime);
+  osc.stop(startTime + duration);
+  osc2.start(startTime);
+  osc2.stop(startTime + duration);
+}
+
+function playMelody() {
+  if (!audioCtx) return;
+  let t = audioCtx.currentTime + 0.1;
+  const tempo = 1.3; // slower = gentler
+
+  melody.forEach(n => {
+    if (n.note && noteFreqs[n.note]) {
+      playNote(noteFreqs[n.note], t, n.dur * tempo * 0.9);
+    }
+    t += n.dur * tempo;
+  });
+
+  // Loop
+  const totalDur = melody.reduce((s, n) => s + n.dur * tempo, 0);
+  musicTimeout = setTimeout(() => {
+    if (musicPlaying) playMelody();
+  }, totalDur * 1000);
+}
+
+function toggleMusic() {
+  const btn = document.getElementById('music-btn');
+  if (!musicPlaying) {
+    initAudio();
+    musicPlaying = true;
+    btn.classList.add('playing');
+    playMelody();
+  } else {
+    musicPlaying = false;
+    btn.classList.remove('playing');
+    clearTimeout(musicTimeout);
+  }
+}
+
+document.getElementById('music-btn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  toggleMusic();
+});
+
+// Auto-start music on first user interaction
+let musicAutoStarted = false;
+document.addEventListener('click', () => {
+  if (!musicAutoStarted) {
+    musicAutoStarted = true;
+    if (!musicPlaying) toggleMusic();
+  }
+}, { once: false });
+
+// ========== FOREST SCENE ==========
+const canvas = document.getElementById('forest-canvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', resize);
+
+let girlY = H * 0.75;
+let walkProgress = 0;
+const totalClicks = 18;
+let clicks = 0;
+
+const mushrooms = [];
+for (let i = 0; i < 12; i++) {
+  mushrooms.push({
+    x: Math.random() * W,
+    baseY: H * 0.65 + Math.random() * H * 0.2,
+    size: 6 + Math.random() * 10,
+    hue: [0, 45, 280, 340, 50][Math.floor(Math.random() * 5)],
+    side: Math.random() > 0.5 ? -1 : 1
+  });
+}
+
+const fireflies = [];
+for (let i = 0; i < 25; i++) {
+  fireflies.push({
+    x: Math.random() * W,
+    y: H * 0.2 + Math.random() * H * 0.5,
+    phase: Math.random() * Math.PI * 2,
+    speed: 0.01 + Math.random() * 0.02,
+    radius: 1.5 + Math.random() * 2
+  });
+}
+
+function drawForest(t) {
+  const sky = ctx.createLinearGradient(0, 0, 0, H);
+  sky.addColorStop(0, '#0a1a0a');
+  sky.addColorStop(0.3, '#132613');
+  sky.addColorStop(0.7, '#1a3a1a');
+  sky.addColorStop(1, '#0d1f0d');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.save();
+  ctx.globalAlpha = 0.06 + Math.sin(t * 0.0005) * 0.02;
+  const rayGrad = ctx.createRadialGradient(W/2, -100, 10, W/2, H * 0.5, H);
+  rayGrad.addColorStop(0, '#c8e6c0');
+  rayGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = rayGrad;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  const vanishY = H * 0.25 - walkProgress * H * 0.15;
+  const pathWidthBottom = 120;
+  const pathWidthTop = 10;
+
+  ctx.beginPath();
+  ctx.moveTo(W/2 - pathWidthBottom/2, H);
+  ctx.lineTo(W/2 - pathWidthTop/2, vanishY);
+  ctx.lineTo(W/2 + pathWidthTop/2, vanishY);
+  ctx.lineTo(W/2 + pathWidthBottom/2, H);
+  ctx.closePath();
+  const pathGrad = ctx.createLinearGradient(0, vanishY, 0, H);
+  pathGrad.addColorStop(0, '#2a3a20');
+  pathGrad.addColorStop(1, '#3d4a30');
+  ctx.fillStyle = pathGrad;
+  ctx.fill();
+
+  drawTreeLine(W/2 - 70, W * -0.1, vanishY, H, t, -1);
+  drawTreeLine(W/2 + 70, W * 1.1, vanishY, H, t, 1);
+
+  mushrooms.forEach(m => {
+    const depth = (m.baseY - vanishY) / (H - vanishY);
+    const mx = m.side > 0
+      ? W/2 + 40 + (m.x % (W/3)) * depth
+      : W/2 - 40 - (m.x % (W/3)) * depth;
+    const my = m.baseY;
+    const sz = m.size * depth;
+    ctx.beginPath();
+    ctx.ellipse(mx, my - sz * 0.3, sz * 0.8, sz * 0.5, 0, Math.PI, 0);
+    ctx.fillStyle = `hsla(${m.hue}, 60%, 40%, 0.7)`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(mx - sz * 0.2, my - sz * 0.5, sz * 0.1, 0, Math.PI * 2);
+    ctx.arc(mx + sz * 0.15, my - sz * 0.6, sz * 0.08, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.fill();
+    ctx.fillStyle = 'rgba(230,220,200,0.6)';
+    ctx.fillRect(mx - sz * 0.12, my - sz * 0.3, sz * 0.24, sz * 0.5);
+  });
+
+  fireflies.forEach(f => {
+    f.phase += f.speed;
+    const glow = 0.3 + Math.sin(f.phase) * 0.7;
+    const fx = f.x + Math.sin(f.phase * 0.7) * 15;
+    const fy = f.y + Math.cos(f.phase * 0.5) * 10;
+    ctx.beginPath();
+    ctx.arc(fx, fy, f.radius, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200, 230, 140, ${glow * 0.6})`;
+    ctx.fill();
+    const glowGrad = ctx.createRadialGradient(fx, fy, 0, fx, fy, f.radius * 5);
+    glowGrad.addColorStop(0, `rgba(200, 230, 140, ${glow * 0.2})`);
+    glowGrad.addColorStop(1, 'transparent');
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(fx - f.radius * 5, fy - f.radius * 5, f.radius * 10, f.radius * 10);
+  });
+
+  const girlScale = 0.6 + (1 - walkProgress) * 0.4;
+  const gx = W / 2;
+  const gy = H * 0.75 - walkProgress * (H * 0.38);
+  drawGirl(gx, gy, girlScale, t);
+}
+
+function drawTreeLine(nearX, farX, vanishY, bottomY, t, side) {
+  const count = 8;
+  for (let i = 0; i < count; i++) {
+    const frac = i / (count - 1);
+    const depth = frac;
+    const tx = nearX + (farX - nearX) * depth * 0.3 + side * (30 + depth * 80);
+    const ty = bottomY - (bottomY - vanishY) * depth * 0.85;
+    const treeH = (180 + depth * 200) * (1 - depth * 0.3);
+    const trunkW = 8 + (1 - depth) * 12;
+    ctx.fillStyle = `rgba(30, 50, 25, ${0.9 - depth * 0.3})`;
+    ctx.fillRect(tx - trunkW/2, ty - treeH, trunkW, treeH);
+    const sway = Math.sin(t * 0.001 + i * 1.5) * 3 * (1 - depth * 0.5);
+    for (let j = 0; j < 3; j++) {
+      const cy = ty - treeH + treeH * 0.15 + j * treeH * 0.2;
+      const cw = (40 + (1 - depth) * 60) * (1 - j * 0.15);
+      ctx.beginPath();
+      ctx.ellipse(tx + sway, cy, cw, treeH * 0.2, 0, 0, Math.PI * 2);
+      const green = 40 + j * 15 + Math.floor(depth * 20);
+      ctx.fillStyle = `rgba(${30 + j * 10}, ${green + 20}, ${20 + j * 5}, ${0.7 - depth * 0.2})`;
+      ctx.fill();
+    }
+  }
+}
+
+function drawGirl(x, y, scale, t) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  const walkCycle = Math.sin(t * 0.005) * 3;
+  ctx.beginPath();
+  ctx.ellipse(0, 5, 18, 5, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(-12, 0);
+  ctx.quadraticCurveTo(-14, -30, -8, -50);
+  ctx.lineTo(8, -50);
+  ctx.quadraticCurveTo(14, -30, 12, 0);
+  ctx.closePath();
+  ctx.fillStyle = '#3a2a2a';
+  ctx.fill();
+  ctx.strokeStyle = '#2a1a1a';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(-4, 0);
+  ctx.lineTo(-5 + walkCycle, 15);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(4, 0);
+  ctx.lineTo(5 - walkCycle, 15);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, -58, 12, 0, Math.PI * 2);
+  ctx.fillStyle = '#3a2a2a';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(-10, -60);
+  ctx.quadraticCurveTo(-16, -40, -13 + walkCycle * 0.5, -25);
+  ctx.lineTo(-8, -50);
+  ctx.closePath();
+  ctx.fillStyle = '#1a1010';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(10, -60);
+  ctx.quadraticCurveTo(16, -40, 13 - walkCycle * 0.5, -25);
+  ctx.lineTo(8, -50);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(0, -60, 13, Math.PI, 0);
+  ctx.fillStyle = '#1a1010';
+  ctx.fill();
+  ctx.restore();
+}
+
+let forestAnimId;
+function animateForest(t) {
+  drawForest(t);
+  forestAnimId = requestAnimationFrame(animateForest);
+}
+animateForest(0);
+
+// Click to walk
+document.getElementById('forest-scene').addEventListener('click', () => {
+  if (clicks >= totalClicks) return;
+  clicks++;
+  walkProgress = clicks / totalClicks;
+  document.getElementById('walk-progress-bar').style.width = (walkProgress * 100) + '%';
+
+  if (clicks >= totalClicks) {
+    document.getElementById('click-hint').style.opacity = '0';
+    setTimeout(() => {
+      document.getElementById('forest-scene').classList.add('fade-out');
+      document.getElementById('main-scene').classList.add('visible');
+      setTimeout(() => {
+        cancelAnimationFrame(forestAnimId);
+        document.getElementById('forest-scene').style.display = 'none';
+      }, 1500);
+    }, 500);
+  }
+});
+
+// ========== MAIN SCENE: STARS ==========
+const mainScene = document.getElementById('main-scene');
+for (let i = 0; i < 80; i++) {
+  const star = document.createElement('div');
+  star.className = 'star';
+  const size = 1 + Math.random() * 2;
+  star.style.cssText = `
+    width: ${size}px; height: ${size}px;
+    left: ${Math.random() * 100}%;
+    top: ${Math.random() * 100}%;
+    --dur: ${2 + Math.random() * 4}s;
+    animation-delay: ${Math.random() * 3}s;
+  `;
+  mainScene.appendChild(star);
+}
+
+// ========== BUBBLES ==========
+const bubbleData = [
+  { label: '疯狂', quote: 'There is always some madness in love. But there is also always some reason in madness.', author: '尼采', color: 'bubble-c1' },
+  { label: '勇气', quote: 'Let everything happen to you: beauty and terror. Just keep going. No feeling is final.', author: '里尔克', color: 'bubble-c2' },
+  { label: '迷人', quote: 'The mystery of love is greater than the mystery of death.', author: '王尔德', color: 'bubble-c3' },
+  { label: '自由', quote: '...to become so absolutely free that your very existence is an act of rebellion.', author: '加缪', color: 'bubble-c4' },
+  { label: '力量', quote: 'Destruction becomes active… into an affirmative power.', author: '德勒兹', color: 'bubble-c5' },
+  { label: '26', quote: null, birthday: true, color: 'bubble-c6' }
+];
+
+const rowTop = document.getElementById('bubble-row-top');
+const rowBottom = document.getElementById('bubble-row-bottom');
+
+bubbleData.forEach((data, i) => {
+  const bubble = document.createElement('div');
+  bubble.className = `bubble ${data.color}`;
+
+  if (data.birthday) {
+    bubble.classList.add('bubble-big');
+    bubble.innerHTML = `<span class="label-26">${data.label}</span>`;
+    rowBottom.appendChild(bubble);
+  } else {
+    bubble.classList.add('bubble-normal');
+    bubble.innerHTML = `<span class="label">${data.label}</span>`;
+    rowTop.appendChild(bubble);
+  }
+
+  bubble.style.setProperty('--float-dur', (5 + Math.random() * 3) + 's');
+  bubble.style.setProperty('--float-delay', (i * 0.5) + 's');
+
+  bubble.addEventListener('click', (e) => {
+    e.stopPropagation();
+    showModal(data);
+  });
+});
+
+// ========== BIRTHDAY CAKE SVG ==========
+function getCakeSVG() {
+  return `<svg class="birthday-cake" width="160" height="180" viewBox="0 0 160 180" xmlns="http://www.w3.org/2000/svg">
+    <!-- Cake plate -->
+    <ellipse cx="80" cy="168" rx="75" ry="8" fill="#c4a87a" opacity="0.5"/>
+    
+    <!-- Bottom tier -->
+    <rect x="25" y="120" width="110" height="45" rx="6" fill="#f0c4a8"/>
+    <rect x="25" y="120" width="110" height="8" rx="4" fill="#e8b4b8" opacity="0.6"/>
+    <!-- Frosting drips -->
+    <path d="M30 128 Q35 138 30 140 Q28 130 30 128Z" fill="#e8b4b8" opacity="0.5"/>
+    <path d="M55 128 Q58 142 53 145 Q50 133 55 128Z" fill="#e8b4b8" opacity="0.5"/>
+    <path d="M95 128 Q100 140 95 143 Q92 132 95 128Z" fill="#e8b4b8" opacity="0.5"/>
+    <path d="M125 128 Q128 136 125 138 Q122 130 125 128Z" fill="#e8b4b8" opacity="0.5"/>
+    
+    <!-- Top tier -->
+    <rect x="40" y="78" width="80" height="45" rx="6" fill="#f5e0c3"/>
+    <rect x="40" y="78" width="80" height="8" rx="4" fill="#f0d68a" opacity="0.6"/>
+    <!-- Frosting drips -->
+    <path d="M48 86 Q52 96 48 100 Q45 92 48 86Z" fill="#f0d68a" opacity="0.5"/>
+    <path d="M72 86 Q76 100 72 104 Q68 94 72 86Z" fill="#f0d68a" opacity="0.5"/>
+    <path d="M108 86 Q112 94 108 98 Q105 90 108 86Z" fill="#f0d68a" opacity="0.5"/>
+    
+    <!-- Decorative dots -->
+    <circle cx="45" cy="142" r="3" fill="#f0d68a" opacity="0.6"/>
+    <circle cx="60" cy="145" r="2.5" fill="#f0d68a" opacity="0.6"/>
+    <circle cx="80" cy="143" r="3" fill="#f0d68a" opacity="0.6"/>
+    <circle cx="100" cy="145" r="2.5" fill="#f0d68a" opacity="0.6"/>
+    <circle cx="115" cy="142" r="3" fill="#f0d68a" opacity="0.6"/>
+    
+    <!-- Stars on cake -->
+    <text x="55" y="108" fill="#d4a853" font-size="10" opacity="0.7">✦</text>
+    <text x="85" y="105" fill="#d4a853" font-size="8" opacity="0.7">✦</text>
+    <text x="100" y="110" fill="#d4a853" font-size="10" opacity="0.7">✦</text>
+    
+    <!-- Candle -->
+    <rect x="76" y="42" width="8" height="38" rx="3" fill="#c4b7d4"/>
+    <rect x="77" y="42" width="3" height="38" rx="1" fill="#d4c4e4" opacity="0.5"/>
+    
+    <!-- Wick -->
+    <line x1="80" y1="42" x2="80" y2="34" stroke="#4a3a30" stroke-width="1.5" stroke-linecap="round"/>
+    
+    <!-- Flame -->
+    <ellipse cx="80" cy="28" rx="5" ry="10" fill="#f0d68a" opacity="0.9">
+      <animate attributeName="ry" values="10;8;10" dur="1s" repeatCount="indefinite"/>
+      <animate attributeName="rx" values="5;4;5" dur="0.8s" repeatCount="indefinite"/>
+    </ellipse>
+    <ellipse cx="80" cy="30" rx="3" ry="6" fill="#fff8f0" opacity="0.7">
+      <animate attributeName="ry" values="6;5;6" dur="0.8s" repeatCount="indefinite"/>
+    </ellipse>
+    
+    <!-- Flame glow -->
+    <circle cx="80" cy="28" r="18" fill="url(#flameGlow)" opacity="0.3">
+      <animate attributeName="r" values="18;15;18" dur="1.2s" repeatCount="indefinite"/>
+    </circle>
+    
+    <defs>
+      <radialGradient id="flameGlow">
+        <stop offset="0%" stop-color="#f0d68a"/>
+        <stop offset="100%" stop-color="transparent"/>
+      </radialGradient>
+    </defs>
+  </svg>`;
+}
+
+// ========== MODAL ==========
+const modalOverlay = document.getElementById('modal-overlay');
+const modalContent = document.getElementById('modal-content');
+
+function showModal(data) {
+  if (data.birthday) {
+    modalContent.innerHTML = `
+      <div class="birthday-modal-inner">
+        ${getCakeSVG()}
+        <div class="birthday-big">生日快乐</div>
+      </div>`;
+  } else {
+    modalContent.innerHTML = `
+      <div class="modal-quote">${data.quote}</div>
+      <div class="modal-author">— ${data.author}</div>
+    `;
+  }
+  modalOverlay.style.display = 'flex';
+  requestAnimationFrame(() => modalOverlay.classList.add('show'));
+}
+
+modalOverlay.addEventListener('click', () => {
+  modalOverlay.classList.remove('show');
+  setTimeout(() => modalOverlay.style.display = 'none', 500);
+});
+
+// ========== FLOWER RAIN ==========
+const petalColors = ['#e8b4b8', '#f0d68a', '#c4b7d4', '#f0c4a8', '#b8d4e3', '#daa0a0', '#f5e0c3'];
+const petalShapes = [
+  `<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 0 C10 4, 14 6, 16 8 C14 10, 10 12, 8 16 C6 12, 2 10, 0 8 C2 6, 6 4, 8 0Z" fill="COLOR" opacity="0.7"/>
+  </svg>`,
+  `<svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="6" cy="6" rx="6" ry="4" fill="COLOR" opacity="0.6" transform="rotate(ANGLE 6 6)"/>
+  </svg>`
+];
+
+mainScene.addEventListener('click', (e) => {
+  if (e.target.closest('.bubble') || e.target.closest('#modal-overlay')) return;
+  spawnFlowers(e.clientX, e.clientY);
+});
+
+function spawnFlowers(x, y) {
+  const count = 15 + Math.floor(Math.random() * 10);
+  for (let i = 0; i < count; i++) {
+    const petal = document.createElement('div');
+    petal.className = 'petal';
+    const color = petalColors[Math.floor(Math.random() * petalColors.length)];
+    const angle = Math.floor(Math.random() * 360);
+    const shapeIdx = Math.floor(Math.random() * petalShapes.length);
+    const svg = petalShapes[shapeIdx].replace('COLOR', color).replace('ANGLE', angle);
+    petal.innerHTML = svg;
+    petal.style.left = (x + (Math.random() - 0.5) * 120) + 'px';
+    petal.style.top = (y - 20 + Math.random() * 20) + 'px';
+    petal.style.setProperty('--fall-dur', (2 + Math.random() * 3) + 's');
+    petal.style.setProperty('--rot', (180 + Math.random() * 360) + 'deg');
+    petal.style.animationDelay = (Math.random() * 0.5) + 's';
+    document.body.appendChild(petal);
+    setTimeout(() => petal.remove(), 5000);
+  }
+}
+</script>
+</body>
+</html>
